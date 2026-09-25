@@ -6,15 +6,19 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-ARG PYTHON_VERSION=3.14.3
-FROM python:${PYTHON_VERSION}-slim as base
+ARG PYTHON_VERSION=3.12
+FROM python:${PYTHON_VERSION}-slim AS base
+
+# Install uv.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Keeps Python from buffering stdout and stderr to avoid situations where
 # the application crashes without emitting any logs due to buffering.
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
@@ -31,21 +35,18 @@ RUN adduser \
     appuser
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
-# Leverage a bind mount to requirements.txt to avoid having to copy them into
-# into this layer.
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r requirements.txt
-
-# Switch to the non-privileged user to run the application.
-USER appuser
+COPY .python-version pyproject.toml uv.lock ./
+RUN uv sync --locked --no-cache --no-install-project
 
 # Copy the source code into the container.
 COPY . .
+RUN uv sync --locked --no-cache
+
+# Switch to the non-privileged user to run the application.
+USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
-CMD gunicorn '.venv.lib.python3.12.site-packages.fastapi.middleware.wsgi' --bind=0.0.0.0:8000
+CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000"]
