@@ -1,0 +1,51 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [ "CI" ]
+    types: [ "completed" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Build Phase ---
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: client/pnpm-lock.yaml
+      - name: Build Frontend
+        run: cd client && pnpm install --frozen-lockfile && pnpm run build
+
+      # --- Deploy Phase (Choose one below) ---
+
+      # Option 1: Render
+      # - name: Trigger Render deploy
+      #   run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      # Option 2: Google Cloud Run
+      # - uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
+      # - uses: google-github-actions/setup-gcloud@v2
+      # - name: Build and Push Image
+      #   run: |
+      #     docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/ourbase-server:${{ github.sha }} -f server/Dockerfile .
+      #     docker push gcr.io/${{ secrets.GCP_PROJECT }}/ourbase-server:${{ github.sha }}
+      # - name: Deploy to Cloud Run
+      #   run: |
+      #     gcloud run deploy ourbase-server \
+      #       --image gcr.io/${{ secrets.GCP_PROJECT }}/ourbase-server:${{ github.sha }} \
+      #       --region ${{ secrets.GCP_REGION }} \
+      #       --platform managed
+
+      # --- Post-Deploy ---
+      # - name: Run Migrations
+      #   run: # Replace with actual migration command (e.g., uv run alembic upgrade head)
