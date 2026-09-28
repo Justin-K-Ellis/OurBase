@@ -10,8 +10,13 @@ requires-python = ">=3.12"
 dependencies = [
     "black>=26.5.1",
     "fastapi[standard]>=0.141.1",
+    "mypy>=2.3.1",
     "pytest>=9.1.1",
 ]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
 
 [project.scripts]
 server = "app:main"
