@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "brand": "OurBase",
+    "home": "Home",
+    "about": "About"
+  },
+  "home": {
+    "title": "Hello World"
+  },
+  "about": {
+    "title": "About"
+  }
+}
