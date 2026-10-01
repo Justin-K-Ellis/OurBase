@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.frontend("/", directory="../client/dist")
 
 
 origins = ["localhost:5173"]
@@ -16,7 +17,7 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/hello")
 async def root() -> dict[str, str]:
     return {"message": "Hello World"}
 
