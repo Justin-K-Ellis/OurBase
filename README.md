@@ -29,3 +29,7 @@ cd server
 uv sync
 uv run fastapi dev
 ```
+
+## Routing
+
+This app is a monolith, where the frontend, a static JS bundle, is served by the FastAPI backend process. The client app can be run independently for development, but in production the `/dist` frontend bundle will be served from the app HTTP root.
