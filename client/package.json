@@ -13,6 +13,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "daisyui": "^5.7.37",
+    "firebase": "^12.19.0",
     "i18next": "^26.4.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
